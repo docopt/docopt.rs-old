@@ -1,0 +1,7 @@
+#[link(name = "docopt",
+       vers = "0.1",
+       author = "Kirill Panshin")];
+#[crate_type = "lib"];
+
+extern mod std;
+mod docopt;

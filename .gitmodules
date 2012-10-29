@@ -1,0 +1,6 @@
+[submodule "agnostic_tests"]
+	path = agnostic_tests
+	url = git://github.com/docopt/docopt.git
+[submodule "python_docopt"]
+	path = python_docopt
+	url = git://github.com/docopt/docopt.git

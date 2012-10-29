@@ -1,11 +1,12 @@
-# rust-docopt
+rust-docopt
+===========
 
 This is a port of Python docopt library http://github.com/docopt/docopt
 
 ** WORK IS CURRENTLY IN PROGRESS **
 
 
-Requirements:
+Requirements
 -------------
 
 - Rust >= 0.4

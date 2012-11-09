@@ -1,8 +1,9 @@
 extern mod std;
 extern mod docopt;
 
-use send_map::linear::LinearMap;
 use io::{ReaderUtil, WriterUtil};
+use send_map::linear::LinearMap;
+use std::json::LinearMap;
 
 
 /// Reads whole stream and outputs it as string
@@ -23,12 +24,13 @@ fn main () {
 
     let doc: ~str = read_whole_stream_to_str(input_stream);
 
-    let result: Result<~LinearMap<~str, ~str>, ()> = do task::try {
-        let options = docopt::docopt(copy doc);
-        move options
-    };
+    let docopt_result = docopt::docopt(copy doc);
 
-    io::println(fmt!("%?", result));
+    match docopt_result {
+        Ok(options) => io::println(options.to_json().to_str()),
+        Err(error_message) => io::println(error_message)
+
+    }
 
     /* TODO: need to serialize options to JSON and write
        to sdout */

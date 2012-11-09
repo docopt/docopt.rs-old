@@ -24,6 +24,10 @@ To build and run language agnostic tests::
 
     make
 
+Run unit tests::
+
+    make run_docopt_tests
+
 Run only agnostic tests::
 
     make run_agnostic_tests

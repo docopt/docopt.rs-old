@@ -29,7 +29,7 @@ agnostic_testee: agnostic_testee.rs
 	$(RUSTC) agnostic_testee.rs -L ./ -L ./rust-pcre
 
 run_agnostic_tests:
-		python ./python_docopt/language_agnostic_test/language_agnostic_tester.py ./agnostic_testee $(AGNOSTIC_TEST_IDS)
+	python ./python_docopt/language_agnostic_test/language_agnostic_tester.py ./agnostic_testee $(AGNOSTIC_TEST_IDS)
 
 clean:
 	rm *.so docopt_tests agnostic_testee $(PCRE_DIR)/*.so

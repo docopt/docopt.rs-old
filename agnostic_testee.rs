@@ -32,7 +32,6 @@ fn main () {
 
     }
 
-    /* TODO: need to serialize options to JSON and write
-       to sdout */
-
+    /* Testing various things */
+    io::println(docopt::printable_usage(copy doc));
 }

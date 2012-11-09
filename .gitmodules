@@ -4,3 +4,6 @@
 [submodule "python_docopt"]
 	path = python_docopt
 	url = git://github.com/docopt/docopt.git
+[submodule "rust-pcre"]
+	path = rust-pcre
+	url = git://github.com/uasi/rust-pcre.git

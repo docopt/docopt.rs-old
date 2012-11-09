@@ -3,3 +3,4 @@
 *.exe
 *.*~
 agnostic_testee
+docopt_tests

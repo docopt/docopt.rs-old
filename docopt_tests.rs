@@ -14,7 +14,7 @@ mod tests {
 
     #[test]
     fn test_split() {
-        let splitted = pcre_split(~"hello abc world", ~"(abc)");
+        let splitted = pcre_split(~"hello abc world", ~"(a.c)");
         assert splitted.is_ok();
         let expected = &const [~"hello ", ~"abc", ~" world"];
         let result = splitted.get();

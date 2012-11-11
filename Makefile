@@ -5,7 +5,7 @@ RUSTC = rustc0.4
 
 PCRE_DIR = ./rust-pcre
 
-objects = pcre.so docopt.so test_docopt tests agnostic_testee
+objects = pcre.so docopt.so test_docopt run_tests agnostic_testee
 
 # TODO: in fututre need to remove it and use whole agnostic test suite
 AGNOSTIC_TEST_IDS = `seq 1 3`
@@ -18,10 +18,10 @@ docopt.so: docopt.rs docopt.rc
 pcre.so: $(PCRE_DIR)/pcre.rs $(PCRE_DIR)/pcre.rc
 	$(RUSTC) $(PCRE_DIR)/pcre.rc
 
-test_docopt: test_docopt.rs
-	$(RUSTC) test_docopt.rs --test -o test_docopt -L ./ -L ./rust-pcre
+test_docopt: docopt.rs docopt.rc
+	$(RUSTC) docopt.rc --test -o test_docopt -L ./ -L ./rust-pcre
 
-tests:
+run_tests:
 	./test_docopt
 
 agnostic_testee: agnostic_testee.rs
@@ -31,4 +31,4 @@ agnostic_tests:
 	python ./python_docopt/language_agnostic_test/language_agnostic_tester.py ./agnostic_testee $(AGNOSTIC_TEST_IDS)
 
 clean:
-	rm *.so test_docopt agnostic_testee $(PCRE_DIR)/*.so
+	rm -f ./*.so ./test_docopt ./agnostic_testee ./$(PCRE_DIR)/*.so

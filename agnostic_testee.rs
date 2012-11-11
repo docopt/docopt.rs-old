@@ -24,7 +24,7 @@ fn main () {
 
     let doc: ~str = read_whole_stream_to_str(input_stream);
 
-    let docopt_result = docopt::docopt(copy doc);
+    let mut docopt_result = docopt::docopt(copy doc);
 
     match docopt_result {
         Ok(options) => io::println(options.to_json().to_str()),

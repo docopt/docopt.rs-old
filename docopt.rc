@@ -5,4 +5,3 @@
 
 extern mod std;
 extern mod pcre;
-mod docopt;

@@ -9,16 +9,16 @@ use std::json::ToJson;
 
 
 //Toplevel public function for parsing. Args are taken from os::args()
-pub fn docopt(doc: ~str) -> Result<~LinearMap<~str, json::Json>, ~str> {
+pub fn docopt(doc: ~str) -> Result<LinearMap<~str, json::Json>, ~str> {
 
     let argv = os::args();
-    docopt_ext(doc, argv)
+    docopt_ext(copy doc, copy argv)
 }
 
 /// Toplevel public function for parsing doc. Arguments passed explicitly
-pub fn docopt_ext(doc: ~str, argv: ~[~str]) -> Result<~LinearMap<~str, json::Json>, ~str> {
+pub fn docopt_ext(doc: ~str, argv: ~[~str]) -> Result<LinearMap<~str, json::Json>, ~str> {
 
-    let mut options = ~LinearMap();
+    let mut options = LinearMap();
 
     /* TODO: insert data to map here */
     options.insert(~"Arguments", argv.to_json());
@@ -27,7 +27,7 @@ pub fn docopt_ext(doc: ~str, argv: ~[~str]) -> Result<~LinearMap<~str, json::Jso
         Err(str::append(~"Error: ", doc))
     }
     else {
-        Ok(options)
+        Ok(move options)
     }
 }
 
@@ -43,10 +43,10 @@ pub struct Option {
 /// Parse token and return option object
 pub fn Option(short: ~str, long: ~str, argcount: int, value: ~str) -> Option {
     Option {
-        short: short,
-        long: long,
-        argcount: argcount,
-        value: value
+        short: move short,
+        long: move long,
+        argcount: move argcount,
+        value: move value
     }
 }
 
@@ -65,14 +65,17 @@ impl Option {
 
     /// Parse token and return option object
     fn parse(option_description: &str) {
-        let option_description_stripped = option_description.trim();
-        let splitted = str::split_str_nonempty(option_description, ~"  ");
+        let splitted = str::split_str_nonempty(
+            option_description.trim(), ~"  ");
         let mut (options, description) = match splitted.len() {
-            1 => (splitted[0], ~""),
-            2 => (splitted[0], splitted[1]),
-            _ => fail // Handle this situation more gracefully
+            1 => (copy splitted[0], ~""),
+            2 => (copy splitted[0], copy splitted[1]),
+            _ => {io::println("Error: double space must appear only once");
+                  fail}// Handle this situation more gracefully
         };
-        io::println(fmt!("%?", (options, description)));
+
+        // Debug
+        io::println(fmt!("%?", (copy options, copy description)));
 
         let options = str::replace(options, ~",", ~" ");
         let options = str::replace(options, ~"=", ~" ");
@@ -80,10 +83,10 @@ impl Option {
 
         for splitted.each() |part| {
             if str::starts_with(*part, ~"--") {
-                self.long = *part;
+                self.long = copy *part;
             }
             else if str::starts_with(*part, ~"-") {
-                self.short = *part;
+                self.short = copy *part;
             }
             else {
                 self.argcount = 1;
@@ -111,8 +114,8 @@ pub fn printable_usage(doc: ~str) -> ~str {
 
     let splitted = str::split_str_nonempty(doc, ~"Usage:");
     let (word_usage, usage) =match splitted.len() {
-        1 => (splitted[0], ~""),
-        2 => (splitted[0], splitted[1]),
+        1 => (copy splitted[0], ~""),
+        2 => (copy splitted[0], copy splitted[1]),
         _ => {io::println("Error in description: ``Usage:`` \
                            must appear only once");
               fail // Handle more gracefully
@@ -129,8 +132,8 @@ mod tests {
     fn check_option(token: ~str, option_args: (~str, ~str, int, ~str)) {
         let option = get_option();
         option.parse(token);
-        let (short, long, argcount, value) = option_args;
-        assert option == Option(short, long, argcount, value);
+        let (short, long, argcount, value) = copy option_args;
+        assert option == Option(copy short, copy long, copy argcount, copy value);
         io::println(fmt!("%?", option));
     }
 

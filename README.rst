@@ -9,7 +9,7 @@ This is a port of Python docopt library http://github.com/docopt/docopt
 Requirements
 -------------
 
-- Rust == 0.4  // rust-pcre currently supports this latest version
+- Rust >= 0.4  // using bleeding-edge master branch of Rust
 - GNU Make == 3.81  // you can try other versions as well
 
 
@@ -26,7 +26,7 @@ To build and run language agnostic tests::
 
 Run unit tests::
 
-    make run_docopt_tests
+    make run_tests
 
 Run only agnostic tests::
 
@@ -36,7 +36,7 @@ Clean::
 
     make clean
 
-By default only first test is used, as by now nothing is
-implemented yet, i.e. all tests are red.
+Agnositc tests all fail exept first, as by now almost nothing is
+implemented yet.
     
 ** WORK IS CURRENTLY IN PROGRESS **

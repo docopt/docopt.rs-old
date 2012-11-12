@@ -1,11 +1,9 @@
 # GNU Make 3.81
 #
 SHELL = /bin/sh
-RUSTC = rustc0.4
+RUSTC = rustc
 
-PCRE_DIR = ./rust-pcre
-
-objects = pcre.so docopt.so test_docopt run_tests agnostic_testee
+objects = docopt.so test_docopt run_tests agnostic_testee
 
 # TODO: in fututre need to remove it and use whole agnostic test suite
 AGNOSTIC_TEST_IDS = `seq 1 3`
@@ -14,9 +12,6 @@ docopt: $(objects)
 
 docopt.so: docopt.rs docopt.rc
 	$(RUSTC) -L ./rust-pcre docopt.rc
-
-pcre.so: $(PCRE_DIR)/pcre.rs $(PCRE_DIR)/pcre.rc
-	$(RUSTC) $(PCRE_DIR)/pcre.rc
 
 test_docopt: docopt.rs docopt.rc
 	$(RUSTC) docopt.rc --test -o test_docopt -L ./ -L ./rust-pcre
@@ -31,4 +26,4 @@ agnostic_tests:
 	python ./python_docopt/language_agnostic_test/language_agnostic_tester.py ./agnostic_testee $(AGNOSTIC_TEST_IDS)
 
 clean:
-	rm -f ./*.so ./test_docopt ./agnostic_testee ./$(PCRE_DIR)/*.so
+	rm -f ./*.so ./test_docopt ./agnostic_testee 

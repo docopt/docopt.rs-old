@@ -1,12 +1,9 @@
 use cmp::Eq;
+use str::str;
 
 use std::map::Map;
 use send_map::linear::LinearMap;
 use std::json;
-
-use pcre::search;
-use pcre::MatchExtensions;
-use pcre::consts::PCRE_EXTENDED;
 
 use std::json::ToJson;
 
@@ -67,10 +64,19 @@ pub fn get_option() -> Option {
 impl Option {
 
     /// Parse token and return option object
-    fn parse(token: &str) {
-        let mut options = token;
-        let options = str::replace(options, &",", &"");
-        let splitted = str::split_str(options, ~" ");
+    fn parse(option_description: &str) {
+        let option_description_stripped = option_description.trim();
+        let splitted = str::split_str_nonempty(option_description, ~"  ");
+        let mut (options, description) = match splitted.len() {
+            1 => (splitted[0], ~""),
+            2 => (splitted[0], splitted[1]),
+            _ => fail // Handle this situation more gracefully
+        };
+        io::println(fmt!("%?", (options, description)));
+
+        let options = str::replace(options, ~",", ~" ");
+        let options = str::replace(options, ~"=", ~" ");
+        let splitted = str::split_char_nonempty(options, ' ');
 
         for splitted.each() |part| {
             if str::starts_with(*part, ~"--") {
@@ -87,7 +93,7 @@ impl Option {
         // TODO: parse default value '\[default: (.*)\]'
 
     }
-    
+
 }
 
 impl Option: Eq {
@@ -102,11 +108,16 @@ impl Option: Eq {
 
 /// Print usage
 pub fn printable_usage(doc: ~str) -> ~str {
-    let options_result: pcre::SearchResult = search(
-        ~"([uU][sS][aA][gG][eE]:[ \t]+)", doc, PCRE_EXTENDED);
-    let m = options_result.get();
-    let word_usage: ~str = m.matched();
-    let usage: ~str = m.postmatch();
+
+    let splitted = str::split_str_nonempty(doc, ~"Usage:");
+    let (word_usage, usage) =match splitted.len() {
+        1 => (splitted[0], ~""),
+        2 => (splitted[0], splitted[1]),
+        _ => {io::println("Error in description: ``Usage:`` \
+                           must appear only once");
+              fail // Handle more gracefully
+             }
+    };
 
     fmt!("%s%s", word_usage, usage)
 }
@@ -131,6 +142,16 @@ mod tests {
         check_option(~"-h, --help", (~"-h", ~"--help", 0, ~""));
 
         check_option(~"-h TOPIC", (~"-h", ~"", 1, ~""));
+        check_option(~"--help TOPIC", (~"", ~"--help", 1, ~""));
+        check_option(~"-h TOPIC --help TOPIC", (~"-h", ~"--help", 1, ~""));
+        check_option(~"-h TOPIC, --help TOPIC", (~"-h", ~"--help", 1, ~""));
+        check_option(~"-h TOPIC, --help=TOPIC", (~"-h", ~"--help", 1, ~""));
+
+        check_option(~"-h  Description...", (~"-h", ~"", 0, ~""));
+        check_option(~"-h --help  Description...", (~"-h", ~"--help", 0, ~""));
+        check_option(~"-h TOPIC  Description...", (~"-h", ~"", 1, ~""));
+
+        check_option(~"    -h", (~"-h", ~"", 0, ~""));
     }
 
     #[test]

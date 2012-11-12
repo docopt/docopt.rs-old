@@ -4,4 +4,3 @@
 #[crate_type = "lib"];
 
 extern mod std;
-extern mod pcre;

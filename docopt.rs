@@ -74,9 +74,6 @@ impl Option {
                   fail}// Handle this situation more gracefully
         };
 
-        // Debug
-        io::println(fmt!("%?", (copy options, copy description)));
-
         let options = str::replace(options, ~",", ~" ");
         let options = str::replace(options, ~"=", ~" ");
         let splitted = str::split_char_nonempty(options, ' ');
@@ -93,11 +90,22 @@ impl Option {
             }
         }
 
+        if self.argcount > 0 {
+            let splitted_desc = description.split_str(~"[default: ");
+            self.value = match splitted_desc.len() {
+                1 => {~""},
+                2 => {splitted_desc[1].split_char(']')[0]},
+                _ => {io::println("Error: [default: VALUE] must \
+                                   appear only once");
+                      fail} // May be handle this more gracefully
+            };
+        }
         // TODO: parse default value '\[default: (.*)\]'
 
     }
 
 }
+
 
 impl Option: Eq {
     #[inline(always)]
@@ -133,8 +141,8 @@ mod tests {
         let option = get_option();
         option.parse(token);
         let (short, long, argcount, value) = copy option_args;
-        assert option == Option(copy short, copy long, copy argcount, copy value);
-        io::println(fmt!("%?", option));
+        assert option == Option(copy short, copy long,
+                                copy argcount, copy value);
     }
 
     #[test]
@@ -155,6 +163,15 @@ mod tests {
         check_option(~"-h TOPIC  Description...", (~"-h", ~"", 1, ~""));
 
         check_option(~"    -h", (~"-h", ~"", 0, ~""));
+
+        check_option(~"-h TOPIC  Descripton... [default: 2]",
+                    (~"-h", ~"", 1, ~"2"));
+        check_option(~"-h TOPIC  Descripton... [default: topic-1]",
+                    (~"-h", ~"", 1, ~"topic-1"));
+        check_option(~"--help=TOPIC  ... [default: 3.14]",
+                    (~"", ~"--help", 1, ~"3.14"));
+        check_option(~"-h, --help=DIR  ... [default: ./]",
+                    (~"-h", ~"--help", 1, ~"./"));
     }
 
     #[test]

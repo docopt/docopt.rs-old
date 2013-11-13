@@ -1,52 +1,57 @@
-use cmp::Eq;
-use str::str;
+#[link(name = "docopt",
+       vers = "0.1",
+       author = "Kirill Panshin")];
+#[crate_type = "lib"];
 
-use std::map::Map;
-use send_map::linear::LinearMap;
-use std::json;
+extern mod std;
+extern mod extra;
+use std::cmp::Eq;
+use std::hashmap::HashMap;
+use std::str;
+use extra::json;
 
-use std::json::ToJson;
+use extra::json::ToJson;
 
 
 //Toplevel public function for parsing. Args are taken from os::args()
-pub fn docopt(doc: ~str) -> Result<LinearMap<~str, json::Json>, ~str> {
+pub fn docopt(doc: ~str) -> Result<HashMap<~str, json::Json>, ~str> {
 
-    let argv = os::args();
-    docopt_ext(copy doc, copy argv)
+    let argv = std::os::args();
+    docopt_ext(doc.clone(), argv.clone())
 }
 
 /// Toplevel public function for parsing doc. Arguments passed explicitly
-pub fn docopt_ext(doc: ~str, argv: ~[~str]) -> Result<LinearMap<~str, json::Json>, ~str> {
+pub fn docopt_ext(doc: ~str, argv: ~[~str]) -> Result<HashMap<~str, json::Json>, ~str> {
 
-    let mut options = LinearMap();
+    let mut options = HashMap::new();
 
     /* TODO: insert data to map here */
     options.insert(~"Arguments", argv.to_json());
 
     if doc == ~"trigger_error" {
-        Err(str::append(~"Error: ", doc))
+        Err(format!("Error: {}", doc))
     }
     else {
-        Ok(move options)
+        Ok(options)
     }
 }
 
 
 pub struct Option {
-    mut short: ~str,
-    mut long: ~str,
-    mut argcount: int,
-    mut value: ~str
+    short: ~str,
+    long: ~str,
+    argcount: int,
+    value: ~str
 }
 
 
 /// Parse token and return option object
 pub fn Option(short: ~str, long: ~str, argcount: int, value: ~str) -> Option {
     Option {
-        short: move short,
-        long: move long,
-        argcount: move argcount,
-        value: move value
+        short: short,
+        long: long,
+        argcount: argcount,
+        value: value
     }
 }
 
@@ -64,26 +69,27 @@ pub fn get_option() -> Option {
 impl Option {
 
     /// Parse token and return option object
-    fn parse(option_description: &str) {
-        let splitted = str::split_str_nonempty(
-            option_description.trim(), ~"  ");
-        let mut (options, description) = match splitted.len() {
-            1 => (copy splitted[0], ~""),
-            2 => (copy splitted[0], copy splitted[1]),
-            _ => {io::println("Error: double space must appear only once");
-                  fail}// Handle this situation more gracefully
+    fn parse(&mut self, option_description: &str) {
+        let splitted = option_description.trim().split_str_iter("  ").to_owned_vec();
+        let (options, description) = match splitted.len() {
+            1 => (splitted[0].to_owned(), ~""),
+            2 => (splitted[0].to_owned(), splitted[1].to_owned()),
+            _ => {fail!("Error: double space must appear only once");
+                 }// Handle this situation more gracefully
         };
 
-        let options = str::replace(options, ~",", ~" ");
-        let options = str::replace(options, ~"=", ~" ");
-        let splitted = str::split_char_nonempty(options, ' ');
+        let options = str::replace(options, ",", " ");
+        let options = str::replace(options, "=", " ");
+        let splitted = options.split_iter(' ').to_owned_vec();
 
-        for splitted.each() |part| {
-            if str::starts_with(*part, ~"--") {
-                self.long = copy *part;
+        for part in splitted.iter() {
+            if *part == "" {
+                // pass
+            } else if part.starts_with("--") {
+                self.long = part.to_owned();
             }
-            else if str::starts_with(*part, ~"-") {
-                self.short = copy *part;
+            else if part.starts_with("-") {
+                self.short = part.to_owned();
             }
             else {
                 self.argcount = 1;
@@ -91,13 +97,13 @@ impl Option {
         }
 
         if self.argcount > 0 {
-            let splitted_desc = description.split_str(~"[default: ");
+            let splitted_desc = description.split_str_iter("[default: ").to_owned_vec();
             self.value = match splitted_desc.len() {
                 1 => {~""},
-                2 => {splitted_desc[1].split_char(']')[0]},
-                _ => {io::println("Error: [default: VALUE] must \
-                                   appear only once");
-                      fail} // May be handle this more gracefully
+                2 => {splitted_desc[1].split_iter(']').nth(0).unwrap().to_owned()},
+                _ => {fail!("Error: [default: VALUE] must \
+                             appear only once");
+                     } // May be handle this more gracefully
             };
         }
         // TODO: parse default value '\[default: (.*)\]'
@@ -107,30 +113,30 @@ impl Option {
 }
 
 
-impl Option: Eq {
+impl Eq for Option {
     #[inline(always)]
-    pure fn eq(other: &Option) -> bool {
+    fn eq(&self, other: &Option) -> bool {
         ((self.short == other.short) && (self.long == other.long) && (self.argcount == other.argcount) && (self.value == other.value))
     }
     #[inline(always)]
-    pure fn ne(other: &Option) -> bool { !self.eq(other) }
+    fn ne(&self, other: &Option) -> bool { !self.eq(other) }
 }
 
 
 /// Print usage
 pub fn printable_usage(doc: ~str) -> ~str {
 
-    let splitted = str::split_str_nonempty(doc, ~"Usage:");
+    let splitted = doc.split_str_iter("Usage:").to_owned_vec();
     let (word_usage, usage) =match splitted.len() {
-        1 => (copy splitted[0], ~""),
-        2 => (copy splitted[0], copy splitted[1]),
-        _ => {io::println("Error in description: ``Usage:`` \
-                           must appear only once");
-              fail // Handle more gracefully
+        1 => (splitted[0].to_owned(), ~""),
+        2 => (splitted[0].to_owned(), splitted[1].to_owned()),
+        _ => {fail!("Error in description: ``Usage:`` \
+                     must appear only once");
+              // Handle more gracefully
              }
     };
 
-    fmt!("%s%s", word_usage, usage)
+    format!("{}{}", word_usage, usage)
 }
 
 
@@ -138,11 +144,12 @@ pub fn printable_usage(doc: ~str) -> ~str {
 mod tests {
 
     fn check_option(token: ~str, option_args: (~str, ~str, int, ~str)) {
-        let option = get_option();
+        let mut option = super::get_option();
         option.parse(token);
-        let (short, long, argcount, value) = copy option_args;
-        assert option == Option(copy short, copy long,
-                                copy argcount, copy value);
+        let (short, long, argcount, value) = option_args;
+        assert!(option == super::Option(short.clone(), long.clone(),
+                                        argcount.clone(), value.clone()),
+                "Parsing: {}", token);
     }
 
     #[test]
@@ -176,13 +183,13 @@ mod tests {
 
     #[test]
     fn test_docopt_ext_ok() {
-        let result = docopt_ext(~"Usage: my_program", ~[]);
-        assert result.is_ok();
+        let result = super::docopt_ext(~"Usage: my_program", ~[]);
+        assert!(result.is_ok());
     }
 
     // #[test]
     // fn test_docopt_ext_err() {
-    //     let result = docopt::docopt_ext(~"Usage: my_program", ~[~"-h"]);
+    //     let result = super::docopt::docopt_ext(~"Usage: my_program", ~[~"-h"]);
     //     assert result.is_err();
     // }
 

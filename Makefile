@@ -10,17 +10,17 @@ AGNOSTIC_TEST_IDS = `seq 1 3`
 
 docopt: $(objects)
 
-docopt.so: docopt.rs docopt.rc
-	$(RUSTC) -L ./rust-pcre docopt.rc
+docopt.so: docopt.rs
+	$(RUSTC) docopt.rs
 
-test_docopt: docopt.rs docopt.rc
-	$(RUSTC) docopt.rc --test -o test_docopt -L ./ -L ./rust-pcre
+test_docopt: docopt.rs
+	$(RUSTC) docopt.rs --test -o test_docopt
 
 run_tests:
 	./test_docopt
 
 agnostic_testee: agnostic_testee.rs
-	$(RUSTC) agnostic_testee.rs -L ./ -L ./rust-pcre
+	$(RUSTC) agnostic_testee.rs -L ./
 
 run_agnostic_tests:
 	python ./python_docopt/language_agnostic_test/language_agnostic_tester.py ./agnostic_testee $(AGNOSTIC_TEST_IDS)

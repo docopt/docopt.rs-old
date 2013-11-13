@@ -9,7 +9,7 @@ This is a port of Python docopt library http://github.com/docopt/docopt
 Requirements
 -------------
 
-- Rust >= 0.4  // using bleeding-edge master branch of Rust
+- Rust >= 0.8  // using bleeding-edge master branch of Rust
 - GNU Make == 3.81  // you can try other versions as well
 
 
@@ -17,8 +17,7 @@ Building & tests
 ----------------
 Run following commands to init and update git submodules::
 
-   git submodule init
-   git submodule update
+   git submodule update --init
 
 To build and run language agnostic tests::
 
